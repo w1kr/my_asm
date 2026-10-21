@@ -1,0 +1,3 @@
+﻿  Assembling ..\src\copy_dirs.asm...
+..\src\copy_dirs.asm(359): warning A6004: procedure argument or local not referenced : envp
+  asm_prog.vcxproj -> C:\Users\wlkr\Desktop\task6\asm_copy\1_2017\Debug\asm_prog.exe

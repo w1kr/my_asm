@@ -1,0 +1,6 @@
+﻿  Assembling ..\src\main.asm...
+..\src\main.asm(50): warning A6004: procedure argument or local not referenced : a
+..\src\main.asm(50): warning A6004: procedure argument or local not referenced : b
+..\src\main.asm(67): warning A6004: procedure argument or local not referenced : argc
+..\src\main.asm(67): warning A6004: procedure argument or local not referenced : envp
+  asm_prog.vcxproj -> C:\Users\wlkr\Desktop\task6\1\1_2017\Debug\asm_prog.exe
