@@ -9,22 +9,21 @@ include C:\masm32\include\user32.inc
 
 
 .data
-strData 	db "abababa", 0
-subStrData 	db "aba", 0
+strData 	db "sdfad11asdfka1222221safa1", 0
+subStrData 	db "1", 0
 
 .data?
 
 .const
-format 		db "%s", 13, 10, 0
-nullText 	db "NULL", 0
+format 		db "'%s'", 13, 10, 0
+; nullText 	db "NULL", 0
 
 ErrorMessageSplitStr 	db "Error: func splitStr", 0
-
 
 .code
 
 ; char ** split (const char *str, const char *substr);
-splitStr proc c uses ebx, strPtr:dword, substrPtr:dword
+splitStr proc c strPtr:dword, substrPtr:dword
 
 	local currPos:dword
 	local foundPos:dword
@@ -64,7 +63,7 @@ splitStr proc c uses ebx, strPtr:dword, substrPtr:dword
 		invoke crt_strstr, dword ptr[currPos], dword ptr[substrPtr]
 		mov dword ptr[foundPos], eax
 		
-		.if eax == 0
+		.if dword ptr[foundPos] == 0
 			.break
 		.endif
 		
@@ -89,7 +88,7 @@ splitStr proc c uses ebx, strPtr:dword, substrPtr:dword
 	
 	mov dword ptr[array], eax
 	
-	; create substrings
+	; create substrings add in array
 	mov eax, dword ptr[strPtr]
 	mov dword ptr[currPos], eax
 	mov dword ptr[index], 0
@@ -107,20 +106,21 @@ splitStr proc c uses ebx, strPtr:dword, substrPtr:dword
 			mov dword ptr[partLen], eax
 		.endif
 		
-		; malloc for substr 
+		; malloc for substr
+		; (partLen + 1) * 1
 		mov eax, dword ptr[partLen]
-		inc eax		; (partLen + 1) * 1
+		inc eax
 		
 		invoke crt_malloc, eax
-		
 		mov dword ptr[part], eax
 		
 		.if dword ptr[part] == 0
-			jmp splitStr_cleanup
+			.break
 		.endif
 		
 		.if dword ptr[partLen] > 0
 			invoke crt_memcpy, dword ptr[part], dword ptr[currPos], dword ptr[partLen]
+			; invoke crt_strncpy, dword ptr[part], dword ptr[currPos], dword ptr[partLen]
 		.endif
 		
 		mov eax, dword ptr[part]
@@ -151,29 +151,28 @@ splitStr proc c uses ebx, strPtr:dword, substrPtr:dword
 		mov eax, dword ptr[foundPos]
 		add eax, dword ptr[subStrLen]
 		mov dword ptr[currPos], eax
-	
 	.endw
 	
-	; cleanup data	
-splitStr_cleanup:
+	; cleanup data
 	mov dword ptr[freeIndex], 0
 	
-splitStr_cleanup_loop:
-	mov eax, [freeIndex]
-	cmp eax, dword ptr[index]
-	jae splitStr_cleanup_done
+	.while 1
+		mov eax, dword ptr[freeIndex]
+
+		.if eax >= dword ptr[index]
+			.break
+		.endif
 	
-	shl eax, 2
+		shl eax, 2
 	
-	mov ebx, dword ptr[array]
-	mov eax, dword ptr[ebx + eax]
+		mov ebx, dword ptr[array]
+		mov eax, dword ptr[ebx + eax]
 	
-	invoke crt_free, eax
+		invoke crt_free, eax
 	
-	inc dword ptr[freeIndex]
-	jmp splitStr_cleanup_loop
-	
-splitStr_cleanup_done:
+		inc dword ptr[freeIndex]
+	.endw
+
 	invoke crt_free, dword ptr[array]
 	
 	xor eax, eax
@@ -181,8 +180,8 @@ splitStr_cleanup_done:
 	
 splitStr endp
 
-	
 
+; main 
 main proc c uses ebx, argc:DWORD, argv:DWORD, envp:DWORD
 
 	local array:dword
@@ -202,11 +201,11 @@ main proc c uses ebx, argc:DWORD, argv:DWORD, envp:DWORD
 		mov eax, dword ptr[index]
 		shl eax, 2
 		
-		mov ebx, dword ptr[array]
+		mov ebx, dword ptr[array] 
 		mov ebx, dword ptr[ebx + eax]
 		
 		.if ebx == 0
-			invoke crt_printf, offset format, offset nullText
+			; invoke crt_printf, offset format, offset nullText
 			.break
 		.endif
 		
