@@ -21,10 +21,10 @@ struct2 string	<0, offset buff>
 text2			db "World!"
 struct3 string	<6, offset text2>
 
-symbol			db 'l'
-
 text3			db "Worl"
 struct4 string	<4, offset text3>
+
+symbol			db 'l'
 
 .data?
 
@@ -140,7 +140,7 @@ my_strcat endp
 
 
 ; strcmp
-my_strcmp proc c uses ebx, string1:ptr string, string2:ptr string
+my_strcmp proc c uses ebx string1:ptr string, string2:ptr string
 
 	local str1_ptr:dword
 	local str1_len:dword
@@ -244,10 +244,11 @@ my_strchr endp
 
 
 ; strncpy
-my_strncpy proc dst:ptr string, src:ptr string, n:dword
+my_strncpy proc uses ebx dst:ptr string, src:ptr string, n:dword
 
 	local dst_ptr:dword
 	local src_ptr:dword
+	local src_len:dword
 
 	mov eax, src
 	mov eax, (string ptr[eax]).str_ptr
@@ -257,11 +258,21 @@ my_strncpy proc dst:ptr string, src:ptr string, n:dword
 	mov eax, (string ptr[eax]).str_ptr
 	mov dword ptr[dst_ptr], eax
 
+	mov eax, src
+	mov eax, (string ptr[eax]).str_length
+	mov dword ptr[src_len], eax
+
 	mov ecx, dword ptr[n]
 	mov eax, dst
 	mov (string ptr[eax]).str_length, ecx
 
-	.WHILE dword ptr[n] > 0
+	mov ecx, dword ptr[n]
+
+	.IF ecx > dword ptr[src_len]
+		mov ecx, dword ptr[src_len]
+	.ENDIF
+
+	.WHILE ecx > 0
 		mov ebx, dword ptr[dst_ptr]
 		mov eax, dword ptr[src_ptr]
 		mov al, byte ptr[eax]
@@ -269,7 +280,7 @@ my_strncpy proc dst:ptr string, src:ptr string, n:dword
 
 		inc dword ptr[src_ptr]
 		inc dword ptr[dst_ptr]
-		dec dword ptr[n]
+		dec ecx
 	.ENDW
 
 	xor eax, eax
@@ -321,6 +332,10 @@ my_strncat proc c dst:ptr string, src:ptr string, n:dword
 	add dword ptr[dst_ptr], eax
 
 	mov ecx, dword ptr[src_len]
+
+	.IF ecx > dword ptr[n]
+		mov ecx, dword ptr[n]
+	.ENDIF
 
 	.WHILE ecx > 0
 		mov ebx, dword ptr[dst_ptr]
@@ -523,7 +538,7 @@ my_strstr endp
 
 
 ; print_str
-print_str proc c uses ebx, data:ptr string
+print_str proc c data:ptr string
 	
 	local str_ptr:dword
 	local str_len:dword
@@ -557,18 +572,21 @@ main proc c argc:DWORD, argv:DWORD, envp:DWORD
 
 	; strcpy
 	invoke my_strcpy, offset struct2, offset struct1
-;	invoke print_str, offset struct1
-;	invoke print_str, offset struct2
+	invoke print_str, offset struct1
+	invoke print_str, offset struct2
 
 	; strcat
-	invoke my_strcat, offset struct2, offset struct3
+;	invoke my_strcat, offset struct2, offset struct1
 ;	invoke print_str, offset struct2
 
 	; strcmp
-;	invoke my_strcmp, offset struct1, offset struct3
+	invoke my_strcmp, offset struct1, offset struct3
 
-	; strchr	
-;	invoke my_strchr, offset struct1, 61
+	; strchr
+;	mov eax, offset symbol
+;	mov al, byte ptr[eax]
+;	movzx eax, al
+;	invoke my_strchr, offset struct1, eax
 ;	invoke crt_printf, offset format, eax
 
 	; strncpy
@@ -579,16 +597,15 @@ main proc c argc:DWORD, argv:DWORD, envp:DWORD
 ;	invoke my_strnlen, offset struct1, 2
 
 	; strncat
-;	invoke my_strncat, offset struct2, offset struct3, 4
+;	invoke my_strncat, offset struct2, offset struct3, 2
 ;	invoke print_str, offset struct2
 
 	; strncmp
-;	invoke my_strncmp, offset struct1, offset struct2, 6
+;	invoke my_strncmp, offset struct1, offset struct2, 2
 
 	; strstr
-	invoke my_strstr, offset struct2, offset struct4
-	invoke crt_printf, offset format, eax
-
+;	invoke my_strstr, offset struct2, offset struct4
+;	invoke crt_printf, offset format, eax
 
 	xor eax, eax
 	ret
